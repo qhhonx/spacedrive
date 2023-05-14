@@ -8,6 +8,8 @@ import ssr from 'vite-plugin-ssr/plugin';
 import svg from 'vite-plugin-svgr';
 import vercel from 'vite-plugin-vercel';
 
+// envs disabled
+
 export default defineConfig({
 	plugins: [
 		react(),
