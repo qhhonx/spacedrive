@@ -66,7 +66,7 @@ export const Categories = (props: Props) => {
 		if (!element) return;
 
 		element.scrollTo({
-			left: direction === 'left' ? element.scrollLeft + 170 : element.scrollLeft - 170,
+			left: direction === 'left' ? element.scrollLeft + 250 : element.scrollLeft - 250,
 			behavior: 'smooth'
 		});
 	};
@@ -77,13 +77,13 @@ export const Categories = (props: Props) => {
 	// Probs doesn't need to be memoised but it allows for early returns which are nice
 	const scrollTopValue = useMemo(() => {
 		if (selectedCategoryCount === undefined) return 150;
-		if (selectedCategoryCount === 0) return 100;
+		if (selectedCategoryCount < 50) return 100;
 		return selectedCategoryCount >= 50 ? 280 : 150;
 	}, [selectedCategoryCount]);
 
 	const categoriesPageScroll =
 		pageScrollTop >= scrollTopValue
-			? '!absolute translate-y-0 right-[8px]'
+			? '!absolute z-20 translate-y-0'
 			: pageScrollTop >= 120
 			? 'translate-y-[-46px]'
 			: '';
@@ -108,7 +108,7 @@ export const Categories = (props: Props) => {
 			ref={ref}
 			className={clsx(
 				categoriesPageScroll,
-				'no-scrollbar z-20 ml-[-14px] flex min-h-[80px] space-x-[1px] overflow-x-scroll bg-app/90 py-3 pr-5 backdrop-blur-md transition-all duration-200'
+				'no-scrollbar relative left-[-20px] flex min-h-[80px] w-full space-x-[1px] overflow-x-scroll bg-app/90 py-3 pr-5 backdrop-blur-md transition-all duration-200'
 			)}
 		>
 			<div
@@ -117,10 +117,10 @@ export const Categories = (props: Props) => {
 					scroll > 0
 						? 'cursor-pointer bg-opacity-50 opacity-100 hover:opacity-80'
 						: 'pointer-events-none',
-					'sticky left-[33px] z-20 mt-2 flex h-9 w-9 items-center justify-center rounded-full border border-app-line bg-app p-2 opacity-0 backdrop-blur-md transition-all duration-200'
+					'sticky left-[33px] z-30 mt-2 flex h-9 w-9 items-center justify-center rounded-full border border-app-line bg-app p-2 opacity-0 backdrop-blur-md transition-all duration-200'
 				)}
 			>
-				<ArrowLeft weight="bold" className="h-4 w-4 text-white" />
+				<ArrowLeft weight="bold" className="w-4 h-4 text-white" />
 			</div>
 			{categories.data &&
 				CategoryList.map((category) => {
@@ -143,13 +143,13 @@ export const Categories = (props: Props) => {
 			<div
 				onClick={() => handleArrowOnClick('left')}
 				className={clsx(
-					scroll >= 570
+					scroll >= 1250
 						? 'pointer-events-none opacity-0 hover:opacity-0'
 						: 'hover:opacity-80',
-					'sticky right-[2px] z-20 mt-2 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-app-line bg-app bg-opacity-50 p-2 backdrop-blur-md transition-all duration-200'
+					'sticky right-[2px] z-30 mt-2 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-app-line bg-app bg-opacity-50 p-2 backdrop-blur-md transition-all duration-200'
 				)}
 			>
-				<ArrowRight weight="bold" className="h-4 w-4 text-white" />
+				<ArrowRight weight="bold" className="w-4 h-4 text-white" />
 			</div>
 		</div>
 	);
