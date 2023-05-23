@@ -44,7 +44,6 @@ export default function Explorer(props: Props) {
 			console.error('Error in RSPC subscription new thumbnail', err);
 		},
 		onData: (cas_id) => {
-			console.log({ cas_id });
 			expStore.addNewThumbnail(cas_id);
 		}
 	});
@@ -60,7 +59,7 @@ export default function Explorer(props: Props) {
 	});
 
 	return (
-		<div className="flex h-screen w-full flex-col bg-app">
+		<div className="flex flex-col w-full h-screen bg-app">
 			<div className="flex flex-1">
 				<div className={clsx('flex-1 overflow-hidden', props.explorerClassName)}>
 					{props.children}

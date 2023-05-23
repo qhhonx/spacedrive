@@ -1,6 +1,6 @@
-import { getIcon, iconNames } from '@sd/assets/util';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useEffect, useMemo, useState } from 'react';
 import 'react-loading-skeleton/dist/skeleton.css';
 import {
 	ExplorerItem,
@@ -11,33 +11,16 @@ import {
 	useRspcLibraryContext
 } from '@sd/client';
 import { z } from '@sd/ui/src/forms';
-import { useExplorerStore, useExplorerTopBarOptions, useIsDark } from '~/hooks';
+import { useExplorerStore, useExplorerTopBarOptions } from '~/hooks';
 import Explorer from '../Explorer';
 import { SEARCH_PARAMS, useExplorerOrder } from '../Explorer/util';
 import { usePageLayout } from '../PageLayout';
 import { TopBarPortal } from '../TopBar/Portal';
 import TopBarOptions from '../TopBar/TopBarOptions';
-import CategoryButton from '../overview/CategoryButton';
 import Statistics from '../overview/Statistics';
+import Categories from './Categories';
 
 // TODO: Replace left hand type with Category enum type (doesn't exist yet)
-const CategoryToIcon: Record<string, string> = {
-	Recents: iconNames.Collection,
-	Favorites: iconNames.HeartFlat,
-	Photos: iconNames.Image,
-	Videos: iconNames.Video,
-	Movies: iconNames.Movie,
-	Music: iconNames.Audio,
-	Documents: iconNames.Document,
-	Downloads: iconNames.Package,
-	Applications: iconNames.Application,
-	Games: iconNames.Game,
-	Books: iconNames.Book,
-	Encrypted: iconNames.EncryptedLock,
-	Archives: iconNames.Database,
-	Projects: iconNames.Folder,
-	Trash: iconNames.Trash
-};
 
 // Map the category to the ObjectKind for searching
 const SearchableCategories: Record<string, ObjectKindKey> = {
@@ -53,12 +36,12 @@ export type SearchArgs = z.infer<typeof SEARCH_PARAMS>;
 
 export const Component = () => {
 	const page = usePageLayout();
-	const isDark = useIsDark();
 	const explorerStore = useExplorerStore();
 	const ctx = useRspcLibraryContext();
 	const { library } = useLibraryContext();
 	const { explorerViewOptions, explorerControlOptions, explorerToolOptions } =
 		useExplorerTopBarOptions();
+	const [pageScrollTop, setPageScrollTop] = useState<number>(0);
 
 	const [selectedCategory, setSelectedCategory] = useState<string>('Recents');
 
@@ -78,6 +61,23 @@ export const Component = () => {
 	const categories = useLibraryQuery(['categories.list']);
 
 	const isFavoritesCategory = selectedCategory === 'Favorites';
+
+	const selectedCategoryData = categories.data?.find((c) => c.name === selectedCategory);
+
+	//Provides a better scroll experience for categories with a lot of items or no items
+	const scrollTopValue = selectedCategoryData
+		? selectedCategoryData.count === 0
+			? 100
+			: selectedCategoryData.count >= 50
+			? 280
+			: 150
+		: 150;
+	const categoriesPageScroll =
+		pageScrollTop >= scrollTopValue
+			? '!absolute translate-y-0 right-[8px]'
+			: pageScrollTop >= 120
+			? 'translate-y-[-46px]'
+			: '';
 
 	// TODO: Make a custom double click handler for directories to take users to the location explorer.
 	// For now it's not needed because folders shouldn't show.
@@ -126,6 +126,21 @@ export const Component = () => {
 			}
 	}
 
+	//we get the top page scroll value to use with the Categories component
+	useEffect(() => {
+		const pageCurrent = page?.ref?.current;
+		if (pageCurrent) {
+			pageCurrent.addEventListener('scroll', () => {
+				setPageScrollTop(pageCurrent?.scrollTop);
+			});
+			return () => {
+				pageCurrent?.removeEventListener('scroll', () => {
+					setPageScrollTop(pageCurrent?.scrollTop);
+				});
+			};
+		}
+	}, [page?.ref]);
+
 	return (
 		<>
 			<TopBarPortal
@@ -136,35 +151,25 @@ export const Component = () => {
 				}
 			/>
 			<Statistics />
+			<Categories
+				selectedCategory={selectedCategory}
+				setSelectedCategory={(category) => {
+					setSelectedCategory(category);
+					page?.ref?.current?.scrollTo({ top: 0 });
+				}}
+				categories={categories.data}
+				categoriesClassName={categoriesPageScroll}
+			/>
 			<Explorer
 				inspectorClassName="!pt-0 !fixed !top-[50px] !right-[10px] !w-[260px]"
 				viewClassName="!pl-0 !pt-[0] !h-auto !overflow-visible"
-				explorerClassName="!overflow-visible" //required to keep categories sticky, remove with caution
 				listViewHeadersClassName="!top-[65px] z-30"
 				items={items}
 				onLoadMore={query.fetchNextPage}
 				hasNextPage={query.hasNextPage}
 				isFetchingNextPage={query.isFetchingNextPage}
 				scrollRef={page?.ref}
-			>
-				<div className="no-scrollbar sticky top-0 z-10 mt-2 flex space-x-[1px] overflow-x-scroll bg-app/90 px-5 py-1.5 backdrop-blur">
-					{categories.data?.map((category) => {
-						const iconString = CategoryToIcon[category.name] || 'Document';
-						return (
-							<CategoryButton
-								key={category.name}
-								category={category.name}
-								icon={getIcon(iconString, isDark)}
-								items={category.count}
-								selected={selectedCategory === category.name}
-								onClick={() => {
-									setSelectedCategory(category.name);
-								}}
-							/>
-						);
-					})}
-				</div>
-			</Explorer>
+			/>
 		</>
 	);
 };
