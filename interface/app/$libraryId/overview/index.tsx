@@ -38,6 +38,7 @@ export const Component = () => {
 				inspectorClassName="!pt-0 !fixed !top-[50px] !right-[10px] !w-[260px]"
 				viewClassName="!pl-0 !pt-[0] !h-auto !overflow-visible"
 				listViewHeadersClassName="!top-[65px] z-30"
+				explorerClassName="mt-16"
 				items={items}
 				onLoadMore={query.fetchNextPage}
 				hasNextPage={query.hasNextPage}
